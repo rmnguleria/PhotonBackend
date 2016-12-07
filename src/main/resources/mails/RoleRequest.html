@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="#{email.title.info(${userDTO.getFirstName()},${userDTO.getLastName()})}"></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+    <p>Hi,</p>
+    <p th:text="#{email.greeting.userinfo(${userDTO.getFirstName()},${userDTO.getLastName()})}"></p>
+    <p>Role Requests</p>
+    <table>
+        <tr>
+            <th>Tenant</th>
+            <th>Point Of Sale</th>
+            <th>Requested Role</th>
+        </tr>
+        <tr th:each="role : ${requestRoleDTO.getRequestedRoles()}">
+            <td th:text="${role.getTenant()}"></td>
+            <td th:text="${role.getPos()}"></td>
+            <td th:text="${role.getRole()}"></td>
+        </tr>
+    </table>
+    <a th:href="#{email.approve.content(${systemmail},${userDTO.getEmail()},${userid},${ids})}">
+        Approve Campaign</a>
+    <a th:href="#{email.reject.content(${systemmail},${userDTO.getEmail()},${userid},${ids})}">
+        Reject Campaign</a>
+</body>
+</html>

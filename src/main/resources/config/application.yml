@@ -1,0 +1,45 @@
+spring:
+    devtools:
+        restart:
+            enabled: true
+    jackson:
+        serialization:
+          indent_output: true
+          WRITE_DATES_AS_TIMESTAMPS: false
+    datasource:
+        url: jdbc:mariadb://localhost:3306/photon
+        name:
+        username: root
+        password:
+        hikari:
+            data-source-properties:
+                cachePrepStmts: true
+                prepStmtCacheSize: 250
+                prepStmtCacheSqlLimit: 2048
+                useServerPrepStmts: true
+    jpa:
+        database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+        database: MYSQL
+        show-sql: true
+        hibernate:
+          naming:
+            strategy: org.hibernate.cfg.EJB3NamingStrategy
+        properties:
+            hibernate.cache.use_second_level_cache: false
+            hibernate.cache.use_query_cache: false
+            hibernate.generate_statistics: true
+    messages:
+      cache-seconds: 1
+      basename: i18n/messages
+    mail:
+      host: chelsmtp01.karmalab.net
+      port: 25
+      username: cpnsup@expedia.com
+    rabbitmq:
+      host: rs-rabbitmq-int.karmalab.net
+      port: 80
+      username: rwdsync
+      password: Expedia@123
+server:
+  port: 8080
+
