@@ -1,24 +1,23 @@
 package com.expedia.service;
 
-import com.expedia.domain.*;
+import com.expedia.domain.Groups;
+import com.expedia.domain.QGroupRole;
+import com.expedia.domain.QGroups;
+import com.expedia.domain.QRole;
 import com.expedia.repository.GroupsRepository;
-import com.expedia.repository.UserGroupRoleRepository;
-import com.expedia.repository.UserRepository;
-import com.expedia.security.SecurityUtils;
 import com.expedia.web.rest.dto.GroupRoleDTO;
 import com.expedia.web.rest.dto.RequestRoleDTO;
-import com.expedia.web.rest.dto.RoleDTO;
-import com.expedia.web.rest.dto.UserDTO;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 @Transactional
@@ -27,11 +26,11 @@ public class UserService {
     @PersistenceContext
     private EntityManager em;
 
-    @Inject
-    private UserRepository userRepository;
+    //@Inject
+    //private UserRepository userRepository;
 
-    @Inject
-    private UserGroupRoleRepository userGroupRoleRepository;
+    //@Inject
+    //private UserGroupRoleRepository userGroupRoleRepository;
 
     @Inject
     private GroupsRepository groupsRepository;
@@ -42,12 +41,12 @@ public class UserService {
     @Inject
     private MailService mailService;
 
-    @Transactional(readOnly = true)
+    /*@Transactional(readOnly = true)
     public UserDTO getUserWithRoleInfo(){
 
         HashMap<String, String> posMap = groupsService.getPOSMap();
 
-        User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
+        //User user = userRepository.findOneByLogin(SecurityUtils.getCurrentUserLogin()).get();
 
         QUserGroupRole userGroupRole = QUserGroupRole.userGroupRole;
         QGroupRole groupRole = QGroupRole.groupRole;
@@ -80,7 +79,7 @@ public class UserService {
         });
         userDTO.setRoles(rolesList);
         return userDTO;
-    }
+    }*/
 
     @Transactional(readOnly = true)
     public List<GroupRoleDTO> getGroupRoleDTOs(){
@@ -127,7 +126,7 @@ public class UserService {
 
     @Transactional
     public void requestNewRole(RequestRoleDTO requestRoleDTO){
-        UserDTO userDTO = getUserWithRoleInfo();
+        /*UserDTO userDTO = getUserWithRoleInfo();
         User user = userRepository.findOneByLogin(userDTO.getLogin()).get();
         List<UserGroupRole> requestedRoles = new ArrayList<>();
         requestRoleDTO.getRequestedRoles().stream().forEach(groupRole -> {
@@ -136,13 +135,14 @@ public class UserService {
             requestedRoles.add(userGroupRole);
         });
         List<UserGroupRole> savedRequests = userGroupRoleRepository.save(requestedRoles);
-        String userGroupRoleIds = StringUtils.arrayToCommaDelimitedString(savedRequests.stream().map(UserGroupRole::getId).toArray());
-        mailService.sendRequestRoleEmail(userDTO,requestRoleDTO,userGroupRoleIds,user.getId());
+        String userGroupRoleIds = StringUtils.arrayToCommaDelimitedString(savedRequests.stream().map(UserGroupRole::getId).toArray());*/
+
+        mailService.sendRequestRoleEmail(requestRoleDTO);
     }
 
 
 
-    @Transactional
+    /*@Transactional
     public void takeActionOnRequest(ApprovalBO approvalBO){
         Optional<List<UserGroupRole>> userGroupRoles = userGroupRoleRepository.findByUserId(approvalBO.getUserId());
         if(!userGroupRoles.isPresent()){
@@ -171,5 +171,5 @@ public class UserService {
         if(!approvedRoles.isEmpty()) {
             userGroupRoleRepository.save(approvedRoles);
         }
-    }
+    }*/
 }

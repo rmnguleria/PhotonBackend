@@ -23,6 +23,14 @@ public final class Constants {
 
     public static final String QUEUE_NAME = "com.expedia.cpn.cat.cupQueue";
 
+    public static final String ATTR_FIRST_NAME = "givenName";
+
+    public static final String ATTR_LAST_NAME = "sn";
+
+    public static final String ATTR_EMAIL = "mail";
+
+    public static final String ATTR_MANAGER = "manager";
+
     private Constants() {
     }
 }

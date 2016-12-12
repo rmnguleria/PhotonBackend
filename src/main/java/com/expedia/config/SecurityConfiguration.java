@@ -97,7 +97,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/grouprole").permitAll()
                 .antMatchers("/api/**").authenticated()
                 .and()
-                .apply(securityConfigurerAdapter());
+                .apply(new JWTConfigurer(tokenProvider));
     }
 
     @Bean

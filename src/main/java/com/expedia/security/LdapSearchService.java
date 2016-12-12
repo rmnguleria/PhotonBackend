@@ -1,10 +1,13 @@
 package com.expedia.security;
 
+import com.expedia.config.Constants;
 import com.expedia.config.PhotonProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -12,14 +15,13 @@ import javax.naming.directory.*;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+@Service
+public class LdapSearchService {
 
-public final class LdapSearchUser {
+    @Inject
+    private PhotonProperties photonProperties;
 
-    public static final String ATTR_FIRST_NAME = "givenName";
-    public static final String ATTR_LAST_NAME = "sn";
-    public static final String ATTR_EMAIL = "mail";
-
-    private PhotonProperties photonProperties = new PhotonProperties();
+    String[] attrIDs = {Constants.ATTR_FIRST_NAME, Constants.ATTR_LAST_NAME, Constants.ATTR_EMAIL,Constants.ATTR_MANAGER};
 
     /**
      * Finds the user in ldap
@@ -40,7 +42,8 @@ public final class LdapSearchUser {
         try
         {
             ctx = new InitialDirContext(env);
-            NamingEnumeration results = ctx.search(photonProperties.getSecurity().getAuthentication().getLdapAuth().getSearchBase(), filter, getSearchControls());
+            NamingEnumeration results = ctx.search(photonProperties.getSecurity().getAuthentication().getLdapAuth().getSearchBase(),
+                    filter, getSearchControls());
 
             if (results.hasMore())
             {
@@ -48,10 +51,14 @@ public final class LdapSearchUser {
                 SearchResult res = (SearchResult) results.next();
                 Attributes attr = res.getAttributes();
 
+                for(String attribute : attrIDs){
+                    if(attr.get(attribute) != null)
+                        resultMap.put(attribute, attr.get(attribute).toString().replaceAll(attribute + ": ",""));
+                }
 
-                addAttributeToMap(resultMap, attr, ATTR_FIRST_NAME);
-                addAttributeToMap(resultMap, attr, ATTR_LAST_NAME);
-                addAttributeToMap(resultMap, attr, ATTR_EMAIL);
+                //addAttributeToMap(resultMap, attr, Constants.ATTR_FIRST_NAME);
+                //addAttributeToMap(resultMap, attr, Constants.ATTR_LAST_NAME);
+                //addAttributeToMap(resultMap, attr, Constants.ATTR_EMAIL);
 
             }
         }
@@ -62,40 +69,34 @@ public final class LdapSearchUser {
         }
         finally
         {
-            closeConnection(ctx);
+            if(null != ctx)
+            {
+                try
+                {
+                    ctx.close();
+                }
+                catch (NamingException e)
+                {
+                    //log.error("Error getLdapUser()", e);
+                }
+            }
         }
         return resultMap;
     }
 
-    private void addAttributeToMap(HashMap<String,String> resultMap, Attributes attr, String attrName) {
+    /*private void addAttributeToMap(HashMap<String,String> resultMap, Attributes attr, String attrName) {
         if(attr.get(attrName)!=null){
             resultMap.put(attrName,
                     attr.get(attrName).toString().replaceAll(attrName + ": ", ""));
         }
-    }
+    }*/
 
     private SearchControls getSearchControls()
     {
-        String[] attrIDs = {ATTR_FIRST_NAME, ATTR_LAST_NAME, ATTR_EMAIL,"manager"};
         SearchControls searchControls = new SearchControls();
         searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         searchControls.setReturningAttributes(attrIDs);
         return searchControls;
-    }
-
-    private void closeConnection(DirContext ctx)
-    {
-        if(null != ctx)
-        {
-            try
-            {
-                ctx.close();
-            }
-            catch (NamingException e)
-            {
-                //log.error("Error getLdapUser()", e);
-            }
-        }
     }
 
     private Hashtable initializeDir()

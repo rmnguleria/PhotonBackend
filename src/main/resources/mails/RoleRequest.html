@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="#{email.title.info(${userDTO.getFirstName()},${userDTO.getLastName()})}"></title>
+    <title th:text="#{email.title.info(${requestRoleDTO.getUserName()})}"></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
     <p>Hi,</p>
-    <p th:text="#{email.greeting.userinfo(${userDTO.getFirstName()},${userDTO.getLastName()})}"></p>
+    <p th:text="#{email.greeting.userinfo(${requestRoleDTO.getUserName()})}"></p>
     <p>Role Requests</p>
     <table>
         <tr>
@@ -20,9 +20,9 @@
             <td th:text="${role.getRole()}"></td>
         </tr>
     </table>
-    <a th:href="#{email.approve.content(${systemmail},${userDTO.getEmail()},${userid},${ids})}">
+    <a th:href="#{email.approve.content(${systemmail},${requestRoleDTO.getUserEmail()},${userid},${ids},${manageremail})}">
         Approve Campaign</a>
-    <a th:href="#{email.reject.content(${systemmail},${userDTO.getEmail()},${userid},${ids})}">
+    <a th:href="#{email.reject.content(${systemmail},${requestRoleDTO.getUserEmail()},${userid},${ids},${manageremail})}">
         Reject Campaign</a>
 </body>
 </html>

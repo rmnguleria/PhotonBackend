@@ -1,11 +1,10 @@
 package com.expedia.web.rest;
 
-import com.expedia.domain.User;
-import com.expedia.repository.UserRepository;
-import com.expedia.security.LdapSearchUser;
+import com.expedia.config.Constants;
+import com.expedia.security.LdapSearchService;
 import com.expedia.security.jwt.JWTConfigurer;
 import com.expedia.security.jwt.TokenProvider;
-import com.expedia.web.rest.dto.JWTToken;
+import com.expedia.web.rest.dto.LUserDTO;
 import com.expedia.web.rest.dto.LoginDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,15 +15,16 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -36,7 +36,10 @@ public class UserJWTController {
     private TokenProvider tokenProvider;
 
     @Inject
-    private UserRepository userRepository;
+    private LdapSearchService ldapSearchService;
+
+    //@Inject
+    //private UserRepository userRepository;
 
     @Inject
     private AuthenticationManager authenticationManager;
@@ -51,9 +54,8 @@ public class UserJWTController {
         try {
             Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            Optional<User> loggedInUser = userRepository.findOneByLogin(loginDTO.getUsername());
-
-            if(!loggedInUser.isPresent()){
+            //Optional<User> loggedInUser = userRepository.findOneByLogin(loginDTO.getUsername());
+            /*if(!loggedInUser.isPresent()){
                 logger.debug("Adding new user to coupon admin tool",loggedInUser.get().getLogin());
                 LdapSearchUser ldapSearchUser = new LdapSearchUser();
                 HashMap<String,String> map = ldapSearchUser.getLdapUser(loginDTO.getUsername());
@@ -70,12 +72,17 @@ public class UserJWTController {
                     logInUser.setEmail(map.get(LdapSearchUser.ATTR_EMAIL));
                     userRepository.save(logInUser);
                 }
-            }
+            }*/
 
+            HashMap<String,String> userMap = ldapSearchService.getLdapUser(loginDTO.getUsername());
+            String managerId = userMap.get(Constants.ATTR_MANAGER);
+            managerId = managerId.substring(managerId.indexOf('(')+1,managerId.indexOf(')'));
+            HashMap<String,String> managerMap = ldapSearchService.getLdapUser(managerId);
             boolean rememberMe = (loginDTO.isRememberMe() == null) ? false : loginDTO.isRememberMe();
             String jwt = tokenProvider.createToken(authentication, rememberMe);
             response.addHeader(JWTConfigurer.AUTHORIZATION_HEADER, "Bearer " + jwt);
-            return ResponseEntity.ok(new JWTToken(jwt));
+            LUserDTO lUserDTO = new LUserDTO(jwt,userMap.get(Constants.ATTR_FIRST_NAME) + " " + userMap.get(Constants.ATTR_LAST_NAME),loginDTO.getUsername(),userMap.get(Constants.ATTR_EMAIL),managerMap.get(Constants.ATTR_EMAIL),managerMap.get(Constants.ATTR_FIRST_NAME)+ " " + managerMap.get(Constants.ATTR_LAST_NAME));
+            return ResponseEntity.ok(lUserDTO);
         } catch (AuthenticationException exception) {
             logger.error("Error while authenticating", exception.getMessage(),exception);
             return new ResponseEntity<>(Collections.singletonMap("AuthenticationException",exception.getLocalizedMessage()), HttpStatus.UNAUTHORIZED);

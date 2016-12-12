@@ -31,7 +31,7 @@ public class AccountResource {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAccount() {
         logger.debug("Fetching user info");
-        UserDTO userDTO = userService.getUserWithRoleInfo();
+        UserDTO userDTO = null; //= userService.getUserWithRoleInfo();
         logger.debug("User Details fetched",userDTO);
         return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }

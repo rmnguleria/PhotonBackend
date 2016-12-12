@@ -2,19 +2,20 @@ package com.expedia.service;
 
 import com.expedia.config.PhotonProperties;
 import com.expedia.web.rest.dto.RequestRoleDTO;
-import com.expedia.web.rest.dto.UserDTO;
-import org.apache.commons.codec.binary.Base64;
+import com.expedia.web.rest.dto.RoleInfoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 
 import javax.inject.Inject;
 import javax.mail.internet.MimeMessage;
+import java.util.Base64;
 import java.util.Locale;
 
 /**
@@ -57,14 +58,15 @@ public class MailService {
     }
 
 
-    public void sendRequestRoleEmail(UserDTO userDTO , RequestRoleDTO requestRoleDTO , String userGroupRoleIds, Integer userId){
+    public void sendRequestRoleEmail(RequestRoleDTO requestRoleDTO){
         Locale locale = Locale.ENGLISH;
         Context context = new Context(locale);
         context.setVariable("systemmail",photonProperties.getMail().getFrom());
-        context.setVariable("userDTO",userDTO);
         context.setVariable("requestRoleDTO",requestRoleDTO);
-        context.setVariable("ids",new String(Base64.encodeBase64(userGroupRoleIds.getBytes())));
-        context.setVariable("userid",userId);
+        String userGroupRoleIds = StringUtils.arrayToCommaDelimitedString(requestRoleDTO.getRequestedRoles().stream().map(RoleInfoDTO::getGroupRoleId).toArray());
+        context.setVariable("ids",new String(Base64.getEncoder().encode(userGroupRoleIds.getBytes())));
+        context.setVariable("userid",new String(Base64.getEncoder().encode(requestRoleDTO.getUserId().getBytes())));
+        context.setVariable("manageremail",new String(Base64.getEncoder().encode(requestRoleDTO.getManagerEmail().getBytes())));
         String content = templateEngine.process("RoleRequest", context);
         String subject = "Role Request";
         sendEmail(requestRoleDTO.getManagerEmail(), subject, content, false, true);
